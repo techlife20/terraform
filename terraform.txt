@@ -1,0 +1,113 @@
+Terraform
+
+What is terraform?
+
+Terraform ia an opensource infrastructure as a code tool mostly used for managing public clouds such as AWS, Azure, GCP, Digital ocean
+
+
+Terraform is a distributed as a CLI and is used for writing declartive infrastructure as code
+Terraform is a hashicorp product.
+
+
+Basic Terraform configuration
+
+simple one code for configuring a AWS services like VPC and its managing sources
+
+For eg Im going to create VPC, subnets, IGW, RT, Security groups, NAt gateway and 2 EC2 instance 
+
+one instance from Public 
+another one from private
+
+This all services is configured from a single code in terraform as a infrasture code.
+
+Previous terraform installation like binary package
+
+move files to /usr/local/bin
+# terraform --version
+1.1.9
+
+one IAM role for the instance
+
+Providers
+Resource 
+In AWS we are calling all the thing as service 
+
+resource "aws_vpc" "myvpc" {
+  cidr_block       = "10.0.0.0/16"
+  instance_tenancy = "default"
+
+  tags = {
+    Name = "my-vpc"
+  }
+}
+
+logical name /reference name
+
+resource "aws_subnet" "pubsub" {
+  vpc_id     = aws_vpc.myvpc.id
+  cidr_block = "10.0.1.0/24"
+
+  tags = {
+    Name = "Public subnets"
+  }
+}
+
+After IGW 
+
+need to create RT one for public and pvt
+need to create eip and Nat gatewy
+
+resource "aws_nat_gateway" "nat" {
+  allocation_id = aws_eip.eip.id
+  subnet_id     = aws_subnet.pubsub.id
+
+  tags = {
+    Name = "gw NAT"
+  }
+}
+
+
+security group
+resource "aws_security_group" "allow_all" {
+  name        = "allow_all"
+  description = "Allow TLS inbound traffic"
+  vpc_id      = aws_vpc.myvpc.id
+
+  ingress {
+    description      = "TLS from VPC"
+    from_port        = 22
+    to_port          = 22
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+    
+  }
+  ingress {
+    description      = "TLS from VPC"
+    from_port        = 80
+    to_port          = 80
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+    
+  }
+
+  egress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+
+  tags = {
+    Name = "allow_all"
+  }
+}
+
+
+ec2instance one in private and one in publc
+
+
+
+
+
+
